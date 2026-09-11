@@ -4,6 +4,9 @@ import typing
 from .. import dispatcher, ui
 from ..gui import mainwindow
 
+from resolvecommon.folders import get_folder_from_path
+from resolvecommon.session import resolve
+
 class MPNMainController:
 	"""Main application controller"""
 
@@ -11,9 +14,15 @@ class MPNMainController:
 
 		self._gui_window = mainwindow.MPNMainWindow(ui)
 
+		self._last_edit_length = 0
+
 		self._handle_window = self._setup_window()
 		self._setup_events()
 		self._handle_window.Show()
+
+		from ..utils.folders import get_path_from_folder
+
+		self._gui_window._txt_test.Text = get_path_from_folder(resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder())[len("/Master/"):]
 
 		dispatcher.RunLoop()
 
@@ -21,16 +30,16 @@ class MPNMainController:
 
 		return dispatcher.AddWindow({
 			"ID": mainwindow.ID_WINDOW_MAIN,
-			"WindowTitle": "Media Pool Navigator",
+			"WindowTitle": "Media Pool Navigator Pro!",
 			"FixedSize": [500,42],
 			"Events": {"Close": True},
 		}, [self._gui_window.layout()])
 
 	def _setup_events(self):
 
-		self._handle_window.On[mainwindow.ID_WINDOW_MAIN].Close   = self._on_close
-		self._handle_window.On[mainwindow.ID_TXT_TEST].TextEdited = self._test_text_changed
-		self._handle_window.On[mainwindow.ID_BTN_GO].Clicked      = self._on_go_button_clicked
+		self._handle_window.On[mainwindow.ID_WINDOW_MAIN].Close      = self._on_close
+		self._handle_window.On[mainwindow.ID_TXT_TEST].TextEdited    = self._test_text_changed
+		self._handle_window.On[mainwindow.ID_BTN_GO].Clicked         = self._on_go_button_clicked
 		self._handle_window.On[mainwindow.ID_TXT_TEST].ReturnPressed = self._on_go_button_clicked
 
 	def _on_close(self, event:dict):
@@ -40,10 +49,17 @@ class MPNMainController:
 	def _test_text_changed(self, event:dict):
 		"""Test event for media pool browser thing"""
 
-		from resolvecommon.folders import get_folder_from_path
-		from resolvecommon.session import resolve
+
 
 		user_text:str = event["Text"]
+
+		if len(user_text) <= self._last_edit_length:
+
+			self._last_edit_length = len(user_text)
+			return
+
+		self._last_edit_length = len(user_text)
+
 		root = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
 
 		path_normalized = user_text.lstrip("/")
@@ -87,9 +103,6 @@ class MPNMainController:
 			self._gui_window._txt_test.SetSelection(len(user_text), len(full_replace_text))
 
 	def _on_go_button_clicked(self, event:dict):
-
-		from resolvecommon.folders import get_folder_from_path
-		from resolvecommon.session import resolve
 
 		mp = resolve.GetProjectManager().GetCurrentProject().GetMediaPool()
 
