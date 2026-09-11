@@ -44,7 +44,7 @@ class MPNMainController:
 
 	def _on_close(self, event:dict):
 
-		dispatcher.EndLoop(0)
+		dispatcher.ExitLoop(0)
 
 	def _test_text_changed(self, event:dict):
 		"""Test event for media pool browser thing"""
