@@ -22,7 +22,9 @@ class MPNMainController:
 
 		from ..utils.folders import get_path_from_folder
 
-		self._gui_window._txt_test.Text = get_path_from_folder(resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder())[len("/Master/"):]
+		start_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
+		if start_folder:
+			self._gui_window._txt_test.Text = get_path_from_folder(start_folder)[len("/Master/"):]
 
 		dispatcher.RunLoop()
 
@@ -37,14 +39,32 @@ class MPNMainController:
 
 	def _setup_events(self):
 
-		self._handle_window.On[mainwindow.ID_WINDOW_MAIN].Close      = self._on_close
-		self._handle_window.On[mainwindow.ID_TXT_TEST].TextEdited    = self._test_text_changed
-		self._handle_window.On[mainwindow.ID_BTN_GO].Clicked         = self._on_go_button_clicked
-		self._handle_window.On[mainwindow.ID_TXT_TEST].ReturnPressed = self._on_go_button_clicked
+		self._handle_window.On[mainwindow.ID_WINDOW_MAIN].Close       = self._on_close
+		self._handle_window.On[mainwindow.ID_TXT_TEST].TextEdited     = self._test_text_changed
+		self._handle_window.On[mainwindow.ID_BTN_GO].Clicked          = self._on_go_button_clicked
+		self._handle_window.On[mainwindow.ID_BTN_SET_CURRENT].Clicked = self._on_set_current_button_clicked
+		self._handle_window.On[mainwindow.ID_TXT_TEST].ReturnPressed  = self._on_go_button_clicked
 
 	def _on_close(self, event:dict):
 
 		dispatcher.ExitLoop(0)
+
+	def _on_set_current_button_clicked(self, event:dict):
+
+		current = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
+
+		if not current:
+			return
+
+		from ..utils.folders import get_path_from_folder
+		current_path = get_path_from_folder(current)[len("/Master/"):]
+
+		self._gui_window._btn_set_current.Enabled = False
+
+		self._gui_window._txt_test.Text = current_path
+		self._gui_window._txt_test.SetFocus("OtherFocusReason")
+
+		self._gui_window._btn_set_current.Enabled = True
 
 	def _test_text_changed(self, event:dict):
 		"""Test event for media pool browser thing"""
