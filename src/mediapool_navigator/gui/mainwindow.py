@@ -5,6 +5,7 @@ ID_WINDOW_MAIN = "com.glowingpixel.navigator.mainwindow"
 ID_TXT_TEST        = "txt_test_thing"
 ID_BTN_GO          = "btn_go"
 ID_BTN_SET_CURRENT = "btn_set_current"
+ID_TREE_SUBFOLDERS = "tree_subfolders"
 
 class MPNMainWindow(MPNAbstractWidget):
 
@@ -38,9 +39,32 @@ class MPNMainWindow(MPNAbstractWidget):
 			"Events": {"Clicked": True},
 		})
 
+		self._tree_subfolders = self._ui.Tree({
+			"ID": ID_TREE_SUBFOLDERS,
+			"AlternatingRowColors":True,
+			"RootIsDecorated": False,
+			"HeaderHidden":True,
+		})
+
 	def layout(self):
-		return self._ui.HGroup([
-			self._lbl_master,
-			self._txt_test,
-			self._btn_set_current,
+		return self._ui.VGroup([
+			self._ui.HGroup({
+					"Weight": 0,
+				},[
+					self._lbl_master,
+					self._txt_test,
+					self._btn_set_current,
+				]
+			),
+			self._tree_subfolders,
 		])
+
+	def set_subfolders_list(self, subfolders:list[str]):
+
+		self._tree_subfolders.Clear()
+
+		for subfolder_name in subfolders:
+
+			subfolder_item = self._tree_subfolders.NewItem()
+			subfolder_item.Text[0] = subfolder_name
+			self._tree_subfolders.AddTopLevelItem(subfolder_item)

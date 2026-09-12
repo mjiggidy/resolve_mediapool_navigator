@@ -1,5 +1,5 @@
 from __future__ import annotations
-import typing
+import typing, re
 
 from .. import dispatcher, ui
 from ..gui import mainwindow
@@ -24,7 +24,7 @@ class MPNMainController:
 
 		start_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
 		if start_folder:
-			self._gui_window._txt_test.Text = get_path_from_folder(start_folder)[len("/Master/"):]
+			self._gui_window._txt_test.Text = get_path_from_folder(start_folder)[len("/Master/"):].rstrip("/")
 
 		dispatcher.RunLoop()
 
@@ -33,7 +33,7 @@ class MPNMainController:
 		return dispatcher.AddWindow({
 			"ID": mainwindow.ID_WINDOW_MAIN,
 			"WindowTitle": "Media Pool Navigator Pro!",
-			"FixedSize": [500,42],
+			"FixedSize": [500,128],
 			"Events": {"Close": True},
 		}, [self._gui_window.layout()])
 
@@ -69,16 +69,11 @@ class MPNMainController:
 	def _test_text_changed(self, event:dict):
 		"""Test event for media pool browser thing"""
 
-
+#		self._gui_window._tree_subfolders.Clear()
 
 		user_text:str = event["Text"]
 
-		if len(user_text) <= self._last_edit_length:
 
-			self._last_edit_length = len(user_text)
-			return
-
-		self._last_edit_length = len(user_text)
 
 		root = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
 
@@ -86,7 +81,8 @@ class MPNMainController:
 
 		#print(event)
 
-		if not path_normalized:
+		if not user_text:
+			self._last_edit_length = 0
 			return
 		
 		if "/" in path_normalized:
@@ -97,6 +93,7 @@ class MPNMainController:
 				current_folder = get_folder_from_path(path_normalized[:last_sep_index+1], root)
 			except:
 				print("invalid source path", path_normalized[:last_sep_index+1])
+				self._last_edit_length = len(user_text)
 				return
 
 			partial_folder = path_normalized[last_sep_index+1:]
@@ -109,6 +106,14 @@ class MPNMainController:
 			filter(lambda f: f.GetName().startswith(partial_folder), current_folder.GetSubFolderList()),
 			key=lambda f:f.GetName()
 		)
+
+		self._gui_window.set_subfolders_list([f.GetName() for f in subfolders])
+
+		if len(user_text) <= self._last_edit_length:
+			self._last_edit_length = len(user_text)
+			return
+
+		self._last_edit_length = len(user_text)
 
 		if subfolders:
 
