@@ -41,6 +41,7 @@ class MPNMainController:
 
 		self._handle_window.On[mainwindow.ID_WINDOW_MAIN].Close       = self._on_close
 		self._handle_window.On[mainwindow.ID_TXT_TEST].TextEdited     = self._test_text_changed
+		self._handle_window.On[mainwindow.ID_TXT_TEST].EditingFinished= self._test_text_finished
 		self._handle_window.On[mainwindow.ID_BTN_GO].Clicked          = self._on_go_button_clicked
 		self._handle_window.On[mainwindow.ID_BTN_SET_CURRENT].Clicked = self._on_set_current_button_clicked
 		self._handle_window.On[mainwindow.ID_TXT_TEST].ReturnPressed  = self._on_go_button_clicked
@@ -66,22 +67,22 @@ class MPNMainController:
 
 		self._gui_window._btn_set_current.Enabled = True
 
+	def _test_text_finished(self, event:dict):
+		"""Reformat the thingy all nice"""
+
+		self._gui_window._txt_test.Text = self._gui_window._txt_test.Text.strip("/")
+
 	def _test_text_changed(self, event:dict):
 		"""Test event for media pool browser thing"""
 
-#		self._gui_window._tree_subfolders.Clear()
+		user_input:str = event["Text"]
 
-		user_text:str = event["Text"]
+		root_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
 
+		path_normalized = user_input.lstrip("/")
 
-
-		root = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
-
-		path_normalized = user_text.lstrip("/")
-
-		#print(event)
-
-		if not user_text:
+		if not user_input:
+			
 			self._last_edit_length = 0
 			return
 		
@@ -90,16 +91,19 @@ class MPNMainController:
 			last_sep_index = path_normalized.rfind("/")
 
 			try:
-				current_folder = get_folder_from_path(path_normalized[:last_sep_index+1], root)
+				current_folder = get_folder_from_path(path_normalized[:last_sep_index+1], root_folder)
+
 			except:
+
 				print("invalid source path", path_normalized[:last_sep_index+1])
-				self._last_edit_length = len(user_text)
+				self._last_edit_length = len(user_input)
 				return
 
 			partial_folder = path_normalized[last_sep_index+1:]
 
 		else:
-			current_folder = root
+	
+			current_folder = root_folder
 			partial_folder = path_normalized
 
 		subfolders = sorted(
@@ -109,11 +113,12 @@ class MPNMainController:
 
 		self._gui_window.set_subfolders_list([f.GetName() for f in subfolders])
 
-		if len(user_text) <= self._last_edit_length:
-			self._last_edit_length = len(user_text)
+		if len(user_input) <= self._last_edit_length:
+
+			self._last_edit_length = len(user_input)
 			return
 
-		self._last_edit_length = len(user_text)
+		self._last_edit_length = len(user_input)
 
 		if subfolders:
 
@@ -121,11 +126,11 @@ class MPNMainController:
 
 			autocomplete_text = next_subfolder_name[len(partial_folder):]
 
-			full_replace_text = user_text + autocomplete_text
+			full_replace_text = user_input + autocomplete_text
 
 			self._gui_window._txt_test.Text = full_replace_text
 
-			self._gui_window._txt_test.SetSelection(len(user_text), len(full_replace_text))
+			self._gui_window._txt_test.SetSelection(len(user_input), len(full_replace_text))
 
 	def _on_go_button_clicked(self, event:dict):
 

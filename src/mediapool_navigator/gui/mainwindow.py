@@ -15,13 +15,13 @@ class MPNMainWindow(MPNAbstractWidget):
 
 		self._lbl_master = self._ui.Label({
 			"Weight": 0,
-			"Text": "Master/",
+			"Text": "Master /",
 		})
 
 		self._txt_test = self._ui.LineEdit({
 			"ID": ID_TXT_TEST,
 			"PlaceholderText": "Media Pool Thing",
-			"Events": {"TextEdited":True, "ReturnPressed":True},
+			"Events": {"TextEdited":True, "EditingFinished": True, "ReturnPressed":True},
 		})
 
 		self._btn_go = self._ui.Button({
