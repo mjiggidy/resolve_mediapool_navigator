@@ -33,7 +33,7 @@ class TRTMediaPoolInputController:
 	def _subfolders_changed_event(self, subfolders:list[object]):
 
 		print("Tryin")
-		ui.QueueEvent(self._line_edit, "FolderChanged", {"who": self._line_edit.ID, "what": "FolderChanged", "subfolders":subfolders})
+		ui.QueueEvent(self._line_edit, "FolderChanged", {"subfolders":subfolders})
 		print("tried")
 
 	def _on_user_finished_path(self, event:dict):
