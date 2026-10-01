@@ -90,9 +90,9 @@ class TRTMediaPoolInputController:
 			return
 
 
-		next_subfolder_name = subfolders[0].GetName()
-		full_replace_text   = event["Text"] + next_subfolder_name[len(partial_folder_name):]
+		autocomplete_text = subfolders[0].GetName()[len(partial_folder_name):]
+		full_replace_text = event["Text"] + autocomplete_text
 
 		self._line_edit.Text = full_replace_text
 
-		self._line_edit.SetSelection(current_edit_length, len(full_replace_text))
+		self._line_edit.SetSelection(len(full_replace_text), -len(autocomplete_text))
