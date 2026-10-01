@@ -27,8 +27,12 @@ class TRTMediaPoolInputController:
 		folder_path    = folders.get_path_from_folder(folder)
 		formatted_path = "" if folder_path == "/Master" else folder_path[len("/Master/"):]
 
-		self._line_edit.Text = formatted_path
-		self._last_edit_length = len(formatted_path)
+		self.set_current_text(formatted_path)
+
+	def set_current_text(self, path_text:str):
+
+		self._line_edit.Text   = path_text
+		self._last_edit_length = len(path_text)
 
 	def _subfolders_changed_event(self, subfolders:list[object]):
 
