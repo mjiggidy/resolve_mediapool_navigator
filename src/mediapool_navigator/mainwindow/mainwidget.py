@@ -1,4 +1,4 @@
-from .abstract_widget import MPNAbstractWidget
+from ..gui.abstract_widget import MPNAbstractWidget
 
 ID_WINDOW_MAIN = "com.glowingpixel.navigator.mainwindow"
 
@@ -18,7 +18,7 @@ class MPNMainWindow(MPNAbstractWidget):
 			"Text": "Master /",
 		})
 
-		self._txt_test = self._ui.LineEdit({
+		self._txt_media_pool_path = self._ui.LineEdit({
 			"ID": ID_TXT_TEST,
 			"PlaceholderText": "Media Pool Thing",
 			"Events": {"TextEdited":True, "EditingFinished": True, "ReturnPressed":True},
@@ -52,7 +52,7 @@ class MPNMainWindow(MPNAbstractWidget):
 					"Weight": 0,
 				},[
 					self._lbl_master,
-					self._txt_test,
+					self._txt_media_pool_path,
 					self._btn_set_current,
 				]
 			),
@@ -68,3 +68,18 @@ class MPNMainWindow(MPNAbstractWidget):
 			subfolder_item = self._tree_subfolders.NewItem()
 			subfolder_item.Text[0] = subfolder_name
 			self._tree_subfolders.AddTopLevelItem(subfolder_item)
+
+	def media_pool_path_input(self) -> object:
+		"""The media pool path `LineEdit`"""
+
+		return self._txt_media_pool_path
+
+	def subfolder_list_view(self) -> object:
+		"""The subfolder `Tree` view"""
+
+		return self._tree_subfolders
+
+	def button_use_current(self) -> object:
+		"""The "Use Current" `Button`"""
+
+		return self._btn_set_current
