@@ -36,9 +36,7 @@ class TRTMediaPoolInputController:
 
 	def _subfolders_changed_event(self, subfolders:list[object]):
 
-		print("Tryin")
 		ui.QueueEvent(self._line_edit, "FolderChanged", {"subfolders":subfolders})
-		print("tried")
 
 	def _on_user_finished_path(self, event:dict):
 		"""Reformat/standardize user input"""
@@ -48,54 +46,53 @@ class TRTMediaPoolInputController:
 	def _on_user_modified_path(self, event:dict):
 		"""Test event for media pool browser thing"""
 
-		user_text:str   = event["Text"]
-		path_normalized = user_text.lstrip("/")
+		# Cache the last edit length locally so I can update the... like... next last... length oh man
+		last_edit_length    = self._last_edit_length
+		current_edit_length = len(event["Text"])
 
-		if not user_text:
-			
-			self._last_edit_length = 0
-			return
+		self._last_edit_length = current_edit_length
 
-		root = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
+		# Add a trailing slash to allow for "root" folders to be split between "" (Master) and the partial folder name
+		# NOTE: Yes, that comment made sense to me when I wrote it
+		
+		sanitized_text:str = "/" + event["Text"] if not event["Text"].startswith("/") else event["Text"]
 
-		if "/" in path_normalized:
+		# Split input string into base path and "partial" (or... full, really) folder name
+		# NOTE: For a trailing slash, partial_folder_name becomes "" which is perfect
 
-			last_sep_index = path_normalized.rfind("/")
+		base_path, partial_folder_name = sanitized_text.rsplit("/", 1)
+		
+		# Try to resolve the base Folder handle from the given path, and query any subfolders therein
+		# If any of this fails, something's invalid about the path, so just set subfolders to an empty
+		# list so we don't autocomplete anything atoll, and any subfolder listings are cleared out
 
-			try:
-				current_folder = folders.get_folder_from_path(path_normalized[:last_sep_index+1], root)
-			except:
-				print("invalid source path", path_normalized[:last_sep_index+1])
-				self._last_edit_length = len(user_text)
-				return
+		try:
 
-			partial_folder = path_normalized[last_sep_index+1:]
+			root_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
+			base_folder = folders.get_folder_from_path(base_path, root_folder)
 
-		else:
-			current_folder = root
-			partial_folder = path_normalized
-
-		subfolders = sorted(
-			filter(lambda f: f.GetName().startswith(partial_folder), current_folder.GetSubFolderList()),
-			key=lambda f:f.GetName()
-		)
+			subfolders = sorted(
+				filter(lambda f: f.GetName().startswith(partial_folder_name), base_folder.GetSubFolderList()),
+				key=lambda f:f.GetName()
+			)
+	
+		except Exception as e:
+			subfolders = []
 
 		self._subfolders_changed_event(subfolders)
 
-		if len(user_text) <= self._last_edit_length:
-			self._last_edit_length = len(user_text)
+		# If the user is editing text (either backspacin' or editing in the middle), don't autocomplete
+		if any([
+			not subfolders,
+			current_edit_length <= last_edit_length,
+			self._line_edit.CursorPosition < current_edit_length,
+		]):
 			return
 
-		self._last_edit_length = len(user_text)
 
-		if subfolders:
+		next_subfolder_name = subfolders[0].GetName()
+		full_replace_text   = event["Text"] + next_subfolder_name[len(partial_folder_name):]
 
-			next_subfolder_name = subfolders[0].GetName()
+		self._line_edit.Text = full_replace_text
 
-			autocomplete_text = next_subfolder_name[len(partial_folder):]
-
-			full_replace_text = user_text + autocomplete_text
-
-			self._line_edit.Text = full_replace_text
-
-			self._line_edit.SetSelection(len(user_text), len(full_replace_text))
+		self._line_edit.SetSelection(current_edit_length, len(full_replace_text))

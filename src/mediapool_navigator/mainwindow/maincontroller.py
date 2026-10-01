@@ -34,7 +34,8 @@ class MPNMainController:
 
 	def _on_folder_changed(self, event:dict):
 
-		print("Woah I got ", event)
+		pass
+		#print("Woah I got ", event)
 
 	def _on_set_current_button_clicked(self, event:dict):
 
