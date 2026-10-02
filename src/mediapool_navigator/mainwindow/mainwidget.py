@@ -21,7 +21,13 @@ class MPNMainWindow(MPNAbstractWidget):
 		self._txt_media_pool_path = self._ui.LineEdit({
 			"ID": ID_TXT_TEST,
 			"PlaceholderText": "Media Pool Thing",
-			"Events": {"TextEdited":True, "EditingFinished": True, "ReturnPressed":True, "FolderChanged": True},
+			"Events": {
+				"TextEdited": True,
+				"EditingFinished": True,
+				"ReturnPressed": True,
+				"SelectionChanged": True,
+				"FolderChanged": True,
+			},
 		})
 
 		self._btn_go = self._ui.Button({

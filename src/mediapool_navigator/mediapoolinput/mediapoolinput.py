@@ -31,13 +31,21 @@ class TRTMediaPoolInputController:
 
 		self._line_edit.Text   = base_text + autocomplete_text
 		self._line_edit.SetSelection(len(self._line_edit.Text), -len(autocomplete_text))
-		
+
+		# NOTE: SelectionChanged updates _last_edit_length, so it's important
+		# to set it back here
+
 		self._last_edit_length = len(base_text)
 
 	def _subfolders_changed_event(self, subfolders:list[object]):
 
 		ui.QueueEvent(self._line_edit, "FolderChanged", {"subfolders":subfolders})
 
+	def _on_selection_changed(self, event:dict):
+
+		# User selection should probably break autocomplete
+		self._last_edit_length = len(self._line_edit.Text)
+	
 	def _on_user_finished_path(self, event:dict):
 		"""Reformat/standardize user input"""
 
