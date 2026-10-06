@@ -69,12 +69,15 @@ class MPILineEditController:
 		if folder_uid == self._last_folder_uid:
 			return
 
-		self._last_subfolders = folder.GetSubFolderList()
+		self._last_subfolders = sorted(folder.GetSubFolderList(), key=lambda f: f.GetName())
 		self._last_folder_uid = folder.GetUniqueId()
 
 		logger.debug("Changed folder to %s", folder.GetName())
 
 		self._send_callback(MPICallbacks.CURRENT_FOLDER_CHANGED, folder)
+		
+		# NOTE: Kinda double-fires
+		self._send_callback(MPICallbacks.SUBFOLDERS_CHANGED, self._last_subfolders)
 
 	def _on_selection_changed(self, event:dict):
 
@@ -113,26 +116,25 @@ class MPILineEditController:
 
 			self._set_current_folder(base_folder)
 
-			subfolders = sorted(
-				filter(lambda f: f.GetName().startswith(partial_folder_name), self._last_subfolders),
-				key=lambda f: f.GetName()
+			filtered_subfolders = list(
+				filter(lambda f: f.GetName().startswith(partial_folder_name), self._last_subfolders)
 			)
 	
 		except Exception as e:
 			
 			logger.error("Exception: e", e, exc_info=True)
-			subfolders = []
+			filtered_subfolders = []
 
-		self._send_callback(MPICallbacks.SUBFOLDERS_CHANGED, subfolders)
+		self._send_callback(MPICallbacks.SUBFOLDERS_CHANGED, filtered_subfolders)
 		
 		# If the user is editing text (either backspacin' or editing in the middle), don't autocomplete
 		if any([
-			not subfolders,
+			not filtered_subfolders,
 			current_edit_length <= self._last_edit_length,
 			self._line_edit.CursorPosition < current_edit_length,
 		]):
 			
-			if not subfolders:
+			if not filtered_subfolders:
 				logger.debug("Because no subfolders")
 			
 			if current_edit_length <= self._last_edit_length:
@@ -144,6 +146,6 @@ class MPILineEditController:
 			self._last_edit_length = current_edit_length
 			return
 
-		next_subfolder_name = subfolders[0].GetName()
+		next_subfolder_name = filtered_subfolders[0].GetName()
 
 		self.set_path_from_text(event["Text"], next_subfolder_name[len(partial_folder_name):])
