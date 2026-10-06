@@ -32,7 +32,25 @@ class MPNMainController:
 		window_handle.On[self._main_widget.button_use_current().ID].Clicked           = self._on_set_current_button_clicked
 		window_handle.On[self._main_widget.media_pool_path_input().ID].ReturnPressed  = self._on_go_button_clicked
 
+		window_handle.On[self._main_widget.subfolder_list_view().ID].ItemActivated    = self._on_folder_chosen
+		window_handle.On[self._main_widget.subfolder_list_view().ID].ItemClicked      = self._on_folder_clicked
+
 		self._media_pool_input_controller.register_window_handle(window_handle)
+
+	def _on_folder_clicked(self, event:dict):
+
+		index = self._main_widget.subfolder_list_view().IndexOfTopLevelItem(event["item"])
+		folder = self._media_pool_input_controller._last_subfolders[index]
+		self._media_pool_input_controller.set_path_from_folder(folder)
+
+	def _on_folder_chosen(self, event:dict):
+
+		index = self._main_widget.subfolder_list_view().IndexOfTopLevelItem(event["item"])
+
+		folder = self._media_pool_input_controller._last_subfolders[index]
+		self._media_pool_input_controller.set_path_from_folder(folder)
+		mp = resolve.GetProjectManager().GetCurrentProject().GetMediaPool()
+		mp.SetCurrentFolder(folder)
 
 	def _on_subfolders_changed(self, subfolders:list[object]):
 
