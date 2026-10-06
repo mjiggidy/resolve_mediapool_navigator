@@ -20,7 +20,7 @@ class MPNMainController:
 
 		if start_folder:
 
-			self._media_pool_input_controller.set_current_folder(start_folder)
+			self._media_pool_input_controller.set_path_from_folder(start_folder)
 			
 
 	def register_window_handle(self, window_handle:object):
@@ -44,7 +44,7 @@ class MPNMainController:
 		current_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
 
 		if current_folder:
-			self._media_pool_input_controller.set_current_folder(current_folder)
+			self._media_pool_input_controller.set_path_from_folder(current_folder)
 
 		self.set_ready(True)
 		self._main_widget._txt_media_pool_path.SetFocus("OtherFocusReason")

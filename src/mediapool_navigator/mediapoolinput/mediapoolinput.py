@@ -1,6 +1,10 @@
 from resolvecommon.session import bmd, resolve, fusion
 from ..utils import folders
 
+import logging
+
+logger     = logging.getLogger(__name__)
+
 ui         = fusion.UIManager
 dispatcher = bmd.UIDispatcher(ui)
 
@@ -10,6 +14,9 @@ class TRTMediaPoolInputController:
 
 		self._line_edit        = line_edit
 		self._last_edit_length = len(self._line_edit.Text)
+		
+		self._last_folder_uid  = ""
+		self._last_subfolders  = dict()
 
 	def register_window_handle(self, window_handle:object):
 		"""Register `TextEdited` event with dispatcher window handle"""
@@ -18,16 +25,32 @@ class TRTMediaPoolInputController:
 
 		window_handle.On[self._line_edit.ID].TextEdited       = self._on_user_modified_path
 		window_handle.On[self._line_edit.ID].EditingFinished  = self._on_user_finished_path
-		window_handle.On[self._line_edit.ID].SelectionChanged = self._on_selection_changed
+#		window_handle.On[self._line_edit.ID].SelectionChanged = self._on_selection_changed
 
-	def set_current_folder(self, folder:object):
+	def set_path_from_folder(self, folder:object):
 
 		folder_path    = folders.get_path_from_folder(folder)
 		formatted_path = "" if folder_path == "/Master" else folder_path[len("/Master/"):]
 
-		self.set_current_text(formatted_path)
+		self._set_current_folder(folder)
+		self.set_path_from_text("", formatted_path)
 
-	def set_current_text(self, base_text:str, autocomplete_text:str=""):
+
+	def _set_current_folder(self, folder:object):
+
+		folder_uid = folder.GetUniqueId()
+
+		if folder_uid == self._last_folder_uid:
+			return
+
+		self._last_subfolders = {subfolder.GetName(): subfolder for subfolder in folder.GetSubFolderList()}
+		self._last_folder_uid = folder.GetUniqueId()
+
+		logger.debug("Changed folder to %s", folder.GetName())
+
+		self._subfolders_changed_event(self._last_subfolders)
+
+	def set_path_from_text(self, base_text:str, autocomplete_text:str=""):
 
 		self._line_edit.Text   = base_text + autocomplete_text
 		self._line_edit.SetSelection(len(self._line_edit.Text), -len(autocomplete_text))
@@ -36,6 +59,7 @@ class TRTMediaPoolInputController:
 		# to set it back here
 
 		self._last_edit_length = len(base_text)
+		logger.debug("Edit length set to ", self._last_edit_length)
 
 	def _subfolders_changed_event(self, subfolders:list[object]):
 
@@ -43,6 +67,7 @@ class TRTMediaPoolInputController:
 
 	def _on_selection_changed(self, event:dict):
 
+		# NOTE: Not in use
 		# User selection should probably break autocomplete
 		self._last_edit_length = len(self._line_edit.Text)
 	
@@ -76,16 +101,16 @@ class TRTMediaPoolInputController:
 			root_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
 			base_folder = folders.get_folder_from_path(base_path, root_folder)
 
+			self._set_current_folder(base_folder)
+
 			subfolders = sorted(
-				filter(lambda f: f.GetName().startswith(partial_folder_name), base_folder.GetSubFolderList()),
-				key=lambda f:f.GetName()
+				filter(lambda f: f.startswith(partial_folder_name), self._last_subfolders)
 			)
 	
 		except Exception as e:
-			print("Exception:", str(e))
+			
+			logger.error("Exception: e", e, exc_info=True)
 			subfolders = []
-
-		self._subfolders_changed_event(subfolders)
 
 		# If the user is editing text (either backspacin' or editing in the middle), don't autocomplete
 		if any([
@@ -94,18 +119,16 @@ class TRTMediaPoolInputController:
 			self._line_edit.CursorPosition < current_edit_length,
 		]):
 			
-#			if not subfolders:
-#				print("Because no subfolders")
-#			
-#			if current_edit_length <= self._last_edit_length:
-#				print(f"Because edit length: current_length={current_edit_length}, last_length={self._last_edit_length}")
-#			
-#			if self._line_edit.CursorPosition < current_edit_length:
-#				print("Because cursor position")
+			if not subfolders:
+				logger.debug("Because no subfolders")
+			
+			if current_edit_length <= self._last_edit_length:
+				logger.debug("Because edit length: current_length=%s, last_length=%s", current_edit_length, self._last_edit_length)
+			
+			if self._line_edit.CursorPosition < current_edit_length:
+				logger.debug("Because cursor position")
 
 			self._last_edit_length = current_edit_length
 			return
 
-
-		autocomplete_text = subfolders[0].GetName()[len(partial_folder_name):]
-		self.set_current_text(event["Text"], autocomplete_text)
+		self.set_path_from_text(event["Text"], subfolders[0][len(partial_folder_name):])
