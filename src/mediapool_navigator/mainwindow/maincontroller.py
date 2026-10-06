@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .. import dispatcher, ui
 from . import mainwidget
+from ..folderlist import folderlistcontroller
 from ..mediapoolinput import mediapoolinput, callbacks
 from resolvecommon.session import resolve
 
@@ -15,15 +16,15 @@ class MPNMainController:
 		self._main_widget = main_widget
 
 		self._media_pool_input_controller = mediapoolinput.MPILineEditController(self._main_widget.media_pool_path_input())
+		self._folder_list_controller      = folderlistcontroller.MPNFolderListController(self._main_widget.subfolder_list_view())
 
-		self._media_pool_input_controller.register_callback(callbacks.MPICallbacks.SUBFOLDERS_CHANGED, self._on_subfolders_changed)
+		self._media_pool_input_controller.register_callback(callbacks.MPICallbacks.SUBFOLDERS_CHANGED, self._folder_list_controller.set_folder_list)
+
 
 		start_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
 
 		if start_folder:
-
 			self._media_pool_input_controller.set_path_from_folder(start_folder)
-			
 
 	def register_window_handle(self, window_handle:object):
 
