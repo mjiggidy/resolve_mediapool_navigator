@@ -25,8 +25,6 @@ class MPNMainWindow(MPNAbstractWidget):
 				"TextEdited": True,
 				"EditingFinished": True,
 				"ReturnPressed": True,
-				"SelectionChanged": True,
-				"FolderChanged": True,
 			},
 		})
 
@@ -64,16 +62,6 @@ class MPNMainWindow(MPNAbstractWidget):
 			),
 			self._tree_subfolders,
 		])
-
-	def set_subfolders_list(self, subfolders:list[str]):
-
-		self._tree_subfolders.Clear()
-
-		for subfolder_name in subfolders:
-
-			subfolder_item = self._tree_subfolders.NewItem()
-			subfolder_item.Text[0] = subfolder_name
-			self._tree_subfolders.AddTopLevelItem(subfolder_item)
 
 	def media_pool_path_input(self) -> object:
 		"""The media pool path `LineEdit`"""
