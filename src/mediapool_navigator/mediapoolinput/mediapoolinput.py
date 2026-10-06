@@ -1,22 +1,29 @@
+import logging, typing
+
 from resolvecommon.session import bmd, resolve, fusion
 from ..utils import folders
-
-import logging
+from .callbacks import MPICallbacks
 
 logger     = logging.getLogger(__name__)
 
 ui         = fusion.UIManager
 dispatcher = bmd.UIDispatcher(ui)
 
-class TRTMediaPoolInputController:
+class MPILineEditController:
 
 	def __init__(self, line_edit:object):
 
 		self._line_edit        = line_edit
 		self._last_edit_length = len(self._line_edit.Text)
-		
+
 		self._last_folder_uid  = ""
-		self._last_subfolders  = dict()
+		self._last_subfolders  = list[object]
+
+		self._callbacks:dict[MPICallbacks, list[typing.Callable]] = dict()
+
+		# Register callback types
+		for callback in MPICallbacks:
+			self._callbacks[callback] = []
 
 	def register_window_handle(self, window_handle:object):
 		"""Register `TextEdited` event with dispatcher window handle"""
@@ -28,6 +35,7 @@ class TRTMediaPoolInputController:
 #		window_handle.On[self._line_edit.ID].SelectionChanged = self._on_selection_changed
 
 	def set_path_from_folder(self, folder:object):
+		"""Set the current path from a given media pool folder object"""
 
 		folder_path    = folders.get_path_from_folder(folder)
 		formatted_path = "" if folder_path == "/Master" else folder_path[len("/Master/"):]
@@ -35,6 +43,24 @@ class TRTMediaPoolInputController:
 		self._set_current_folder(folder)
 		self.set_path_from_text("", formatted_path)
 
+	def set_path_from_text(self, base_text:str, autocomplete_text:str=""):
+		"""Set the current path from text"""
+
+		self._line_edit.Text   = base_text + autocomplete_text
+		self._line_edit.SetSelection(len(self._line_edit.Text), -len(autocomplete_text))
+
+		self._last_edit_length = len(base_text)
+
+		logger.debug("Edit length set to ", self._last_edit_length)
+
+	def register_callback(self, callback:MPICallbacks, callback_function:typing.Callable):
+
+		self._callbacks[callback].append(callback_function)
+
+	def _send_callback(self, callback:MPICallbacks, args:typing.Any=None):
+
+		for cb in self._callbacks[callback]:
+			cb(args)
 
 	def _set_current_folder(self, folder:object):
 
@@ -43,27 +69,12 @@ class TRTMediaPoolInputController:
 		if folder_uid == self._last_folder_uid:
 			return
 
-		self._last_subfolders = {subfolder.GetName(): subfolder for subfolder in folder.GetSubFolderList()}
+		self._last_subfolders = folder.GetSubFolderList()
 		self._last_folder_uid = folder.GetUniqueId()
 
 		logger.debug("Changed folder to %s", folder.GetName())
 
-		self._subfolders_changed_event(self._last_subfolders)
-
-	def set_path_from_text(self, base_text:str, autocomplete_text:str=""):
-
-		self._line_edit.Text   = base_text + autocomplete_text
-		self._line_edit.SetSelection(len(self._line_edit.Text), -len(autocomplete_text))
-
-		# NOTE: SelectionChanged updates _last_edit_length, so it's important
-		# to set it back here
-
-		self._last_edit_length = len(base_text)
-		logger.debug("Edit length set to ", self._last_edit_length)
-
-	def _subfolders_changed_event(self, subfolders:list[object]):
-
-		ui.QueueEvent(self._line_edit, "FolderChanged", {"subfolders":subfolders})
+		self._send_callback(MPICallbacks.CURRENT_FOLDER_CHANGED, folder)
 
 	def _on_selection_changed(self, event:dict):
 
@@ -78,7 +89,6 @@ class TRTMediaPoolInputController:
 
 	def _on_user_modified_path(self, event:dict):
 		"""Test event for media pool browser thing"""
-
 
 		current_edit_length = len(event["Text"])
 
@@ -104,7 +114,8 @@ class TRTMediaPoolInputController:
 			self._set_current_folder(base_folder)
 
 			subfolders = sorted(
-				filter(lambda f: f.startswith(partial_folder_name), self._last_subfolders)
+				filter(lambda f: f.GetName().startswith(partial_folder_name), self._last_subfolders),
+				key=lambda f: f.GetName()
 			)
 	
 		except Exception as e:
@@ -112,6 +123,8 @@ class TRTMediaPoolInputController:
 			logger.error("Exception: e", e, exc_info=True)
 			subfolders = []
 
+		self._send_callback(MPICallbacks.SUBFOLDERS_CHANGED, subfolders)
+		
 		# If the user is editing text (either backspacin' or editing in the middle), don't autocomplete
 		if any([
 			not subfolders,
@@ -131,4 +144,6 @@ class TRTMediaPoolInputController:
 			self._last_edit_length = current_edit_length
 			return
 
-		self.set_path_from_text(event["Text"], subfolders[0][len(partial_folder_name):])
+		next_subfolder_name = subfolders[0].GetName()
+
+		self.set_path_from_text(event["Text"], next_subfolder_name[len(partial_folder_name):])

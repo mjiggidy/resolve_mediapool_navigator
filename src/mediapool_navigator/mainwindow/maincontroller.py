@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .. import dispatcher, ui
 from . import mainwidget
-from ..mediapoolinput import mediapoolinput
+from ..mediapoolinput import mediapoolinput, callbacks
 from resolvecommon.session import resolve
 
 from ..utils import folders
@@ -14,7 +14,9 @@ class MPNMainController:
 
 		self._main_widget = main_widget
 
-		self._media_pool_input_controller = mediapoolinput.TRTMediaPoolInputController(self._main_widget.media_pool_path_input())
+		self._media_pool_input_controller = mediapoolinput.MPILineEditController(self._main_widget.media_pool_path_input())
+
+		self._media_pool_input_controller.register_callback(callbacks.MPICallbacks.SUBFOLDERS_CHANGED, self._on_subfolders_changed)
 
 		start_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
 
@@ -28,14 +30,15 @@ class MPNMainController:
 #		window_handle.On[mainwidget.ID_BTN_GO].Clicked          = self._on_go_button_clicked
 		window_handle.On[self._main_widget.button_use_current().ID].Clicked           = self._on_set_current_button_clicked
 		window_handle.On[self._main_widget.media_pool_path_input().ID].ReturnPressed  = self._on_go_button_clicked
-		window_handle.On[self._main_widget.media_pool_path_input().ID].FolderChanged  = self._on_folder_changed
 
 		self._media_pool_input_controller.register_window_handle(window_handle)
 
-	def _on_folder_changed(self, event:dict):
+	def _on_subfolders_changed(self, subfolders:list[object]):
 
-		pass
-		#print("Woah I got ", event)
+		print("---")
+		for sub in subfolders:
+
+			print(sub.GetName())
 
 	def _on_set_current_button_clicked(self, event:dict):
 
