@@ -13,3 +13,6 @@ class MPNFolderListController:
 			tree_item = self._tree_subfolders.NewItem()
 			tree_item.Text[0] = folder.GetName()
 			self._tree_subfolders.AddTopLevelItem(tree_item)
+
+#		if folders:
+#			self._tree_subfolders.TopLevelItem(0).SetSelected(True)
