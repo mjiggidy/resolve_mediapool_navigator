@@ -48,6 +48,10 @@ class MPNMainWindow(MPNAbstractWidget):
 			"AlternatingRowColors":True,
 			"RootIsDecorated": False,
 			"HeaderHidden":True,
+			"Events": {
+				"ItemActivated": True,
+				"ItemClicked": True,
+			}
 		})
 
 	def layout(self):
