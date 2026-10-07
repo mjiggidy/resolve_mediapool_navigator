@@ -62,17 +62,17 @@ class MPILineEditController:
 		for cb in self._callbacks[callback]:
 			cb(args)
 
-	def _set_current_folder(self, folder:object):
+	def _set_current_folder(self, folder:object|None):
 
-		folder_uid = folder.GetUniqueId()
+		folder_uid = folder.GetUniqueId() if folder else None
 
 		if folder_uid == self._last_folder_uid:
 			return
 
-		self._last_subfolders = sorted(folder.GetSubFolderList(), key=lambda f: f.GetName())
-		self._last_folder_uid = folder.GetUniqueId()
+		self._last_folder_uid = folder_uid
+		self._last_subfolders = sorted(folder.GetSubFolderList(), key=lambda f: f.GetName()) if folder else []
 
-		logger.debug("Changed folder to %s", folder.GetName())
+		logger.debug("Changed folder to %s", folder.GetName() if folder else "[None]")
 
 		self._send_callback(MPICallbacks.CURRENT_FOLDER_CHANGED, folder)
 		
@@ -120,22 +120,24 @@ class MPILineEditController:
 				filter(lambda f: f.GetName().startswith(partial_folder_name), self._last_subfolders)
 			)
 	
-		except Exception as e:
+		except FileNotFoundError as e:
 			
-			logger.error("Exception: e", e, exc_info=True)
+			logger.error("Invalid media pool folder: %s", e)
+			
+			self._set_current_folder(None)
 			filtered_subfolders = []
-
-		self._send_callback(MPICallbacks.SUBFOLDERS_CHANGED, filtered_subfolders)
 		
+		self._send_callback(MPICallbacks.SUBFOLDERS_CHANGED, filtered_subfolders)
+
 		# If the user is editing text (either backspacin' or editing in the middle), don't autocomplete
 		if any([
-			not filtered_subfolders,
+#			not filtered_subfolders,
 			current_edit_length <= self._last_edit_length,
 			self._line_edit.CursorPosition < current_edit_length,
 		]):
 			
-			if not filtered_subfolders:
-				logger.debug("Because no subfolders")
+#			if not filtered_subfolders:
+#				logger.debug("Because no subfolders")
 			
 			if current_edit_length <= self._last_edit_length:
 				logger.debug("Because edit length: current_length=%s, last_length=%s", current_edit_length, self._last_edit_length)
@@ -146,6 +148,7 @@ class MPILineEditController:
 			self._last_edit_length = current_edit_length
 			return
 
-		next_subfolder_name = filtered_subfolders[0].GetName()
+
+		next_subfolder_name = filtered_subfolders[0].GetName() if filtered_subfolders else ""
 
 		self.set_path_from_text(event["Text"], next_subfolder_name[len(partial_folder_name):])
