@@ -1,4 +1,4 @@
-__VERSION__ = "0.2-dev"
+__VERSION__ = "0.2"
 URL_GITHUB  = "https://github.com/mjiggidy/resolve_mediapool_navigator/"
 
 from resolvecommon.session import resolve, fusion, bmd
