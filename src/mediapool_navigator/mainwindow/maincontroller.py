@@ -20,7 +20,6 @@ class MPNMainController:
 
 		self._media_pool_input_controller.register_callback(callbacks.MPICallbacks.SUBFOLDERS_CHANGED, self._folder_list_controller.set_folder_list)
 
-
 		start_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetCurrentFolder()
 
 		if start_folder:
