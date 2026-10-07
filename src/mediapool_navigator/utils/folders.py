@@ -49,10 +49,10 @@ def get_folder_from_path(path:PathLike[str], root_folder:bmd.Folder) -> bmd.Fold
 		try:
 			current_folder = next(f for f in current_folder.GetSubFolderList() if f.GetName() == search_folder_name)
 		
-		except StopIteration:
+		except StopIteration as e:
 		
 			logging.getLogger(__name__).debug("Did not find \"%s\" in \"%s\"", search_folder_name, current_folder.GetName())
-			raise FileNotFoundError(f"{search_folder_name} not in {current_folder.GetName()}")
+			raise FileNotFoundError(f"{search_folder_name} not in {current_folder.GetName()}") from e
 		
 		logging.getLogger(__name__).debug("Found \"%s\" in \"%s\"", search_folder_name, current_folder.GetName())
 	
