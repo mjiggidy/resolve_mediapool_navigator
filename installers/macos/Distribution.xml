@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+	
+	<title>Resolve Runtime Calculator</title>
+
+	<background file="installer_bg@2x.png" mime-type="image/png" alignment="bottomleft" />
+	<background-darkAqua file="installer_bg@2x.png" mime-type="image/png" alignment="bottomleft" />
+
+	<welcome    file="welcome.rtf"    mime-type="application/rtf" />
+	<readme     file="readme.rtf"     mime-type="application/rtf" />
+<!--<conclusion file="conclusion.rtf" mime-type="application/rtf" /> -->
+
+	<pkg-ref id="com.glowingpixel.navigator.installer"/>
+	
+	<options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64"/>
+
+	<choices-outline>
+		<line choice="default">
+			<line choice="com.glowingpixel.navigator.installer"/>
+		</line>
+	</choices-outline>
+
+	<choice id="default"/>
+	<choice id="com.glowingpixel.navigator.installer" visible="false">
+		<pkg-ref id="com.glowingpixel.navigator.installer"/>
+	</choice>
+
+	<pkg-ref id="com.glowingpixel.navigator.installer" onConclusion="none">navigator_component.pkg</pkg-ref>
+
+</installer-gui-script>
