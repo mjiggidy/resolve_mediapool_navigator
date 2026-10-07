@@ -13,6 +13,8 @@ class MPNMainWindow(MPNAbstractWidget):
 
 		super().__init__(ui_manager)
 
+		font_about = self._ui.Font({"PointSize": 10})
+
 		self._lbl_master = self._ui.Label({
 			"Weight": 0,
 			"Text": "Master /",
@@ -54,6 +56,26 @@ class MPNMainWindow(MPNAbstractWidget):
 			}
 		})
 
+		self._lbl_written_by = self._ui.Label({
+			"Weight": 0,
+			"Text"  : "Written by Michael Jordan",
+			"Font"  : font_about,
+			"Alignment": {
+				"AlignLight":True,
+				"AlignBottom": True,
+			},
+		})
+
+		self._lbl_info = self._ui.Label({
+			"Weight": 1,
+			"Font"  : font_about,
+			"Alignment": {
+				"AlignRight":True,
+				"AlignBottom": True,
+			},
+			"OpenExternalLinks": True,
+		})
+
 	def layout(self):
 		return self._ui.VGroup([
 			self._ui.HGroup({
@@ -65,6 +87,13 @@ class MPNMainWindow(MPNAbstractWidget):
 				]
 			),
 			self._tree_subfolders,
+
+			self._ui.HGroup({
+				"Weight": 0,
+			},[
+				self._lbl_written_by,
+				self._lbl_info,
+			])
 		])
 
 	def media_pool_path_input(self) -> object:
@@ -81,3 +110,8 @@ class MPNMainWindow(MPNAbstractWidget):
 		"""The "Use Current" `Button`"""
 
 		return self._btn_set_current
+
+	def info_label(self) -> object:
+		"""The software info label"""
+
+		return self._lbl_info

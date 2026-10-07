@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .. import dispatcher, ui
+from .. import dispatcher, ui, __VERSION__, URL_GITHUB
 from . import mainwidget
 from ..folderlist import folderlistcontroller
 from ..mediapoolinput import mediapoolinput, callbacks
@@ -14,6 +14,8 @@ class MPNMainController:
 	def __init__(self, main_widget:mainwidget.MPNMainWindow):
 
 		self._main_widget = main_widget
+
+		self.set_info_label(version_string=__VERSION__, github_url=URL_GITHUB)
 
 		self._media_pool_input_controller = mediapoolinput.MPILineEditController(self._main_widget.media_pool_path_input())
 		self._folder_list_controller      = folderlistcontroller.MPNFolderListController(self._main_widget.subfolder_list_view())
@@ -94,3 +96,7 @@ class MPNMainController:
 		self._main_widget.button_use_current().Enabled    = is_ready
 		self._main_widget.media_pool_path_input().Enabled = is_ready
 		self._main_widget.subfolder_list_view().Enabled   = is_ready
+
+	def set_info_label(self, /, version_string:str, github_url:str):
+
+		self._main_widget.info_label().Text = f"{version_string} | <a href=\"{github_url}\">Github"
