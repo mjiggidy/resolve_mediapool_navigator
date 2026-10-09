@@ -2,7 +2,8 @@ from ..gui.abstract_widget import MPNAbstractWidget
 
 ID_WINDOW_MAIN = "com.glowingpixel.navigator.mainwindow"
 
-ID_TXT_TEST        = "txt_test_thing"
+ID_CMB_PATH        = "cmb_mediapool_path"
+ID_TXT_PATH        = "txt_mediapool_path"
 ID_BTN_GO          = "btn_go"
 ID_BTN_SET_CURRENT = "btn_set_current"
 ID_TREE_SUBFOLDERS = "tree_subfolders"
@@ -21,13 +22,19 @@ class MPNMainWindow(MPNAbstractWidget):
 		})
 
 		self._txt_media_pool_path = self._ui.LineEdit({
-			"ID": ID_TXT_TEST,
+			"ID": ID_TXT_PATH,
 			"PlaceholderText": "Media Pool Thing",
 			"Events": {
 				"TextEdited": True,
 				"EditingFinished": True,
 				"ReturnPressed": True,
 			},
+		})
+
+		self._cmb_media_pool_path = self._ui.ComboBox({
+			"ID": ID_CMB_PATH,
+			"Editable": True,
+			"LineEdit": self._txt_media_pool_path # AHAHAHAHAHA IT WORKED AHAHAHAHAA AAAAAAHAHAHHAAAAA
 		})
 
 		self._btn_go = self._ui.Button({
@@ -82,7 +89,7 @@ class MPNMainWindow(MPNAbstractWidget):
 					"Weight": 0,
 				},[
 					self._lbl_master,
-					self._txt_media_pool_path,
+					self._cmb_media_pool_path,
 					self._btn_set_current,
 				]
 			),
@@ -96,10 +103,15 @@ class MPNMainWindow(MPNAbstractWidget):
 			])
 		])
 
-	def media_pool_path_input(self) -> object:
+	def media_pool_path_editor(self) -> object:
 		"""The media pool path `LineEdit`"""
 
-		return self._txt_media_pool_path
+		return self._cmb_media_pool_path.LineEdit
+
+	def media_pool_path_combo(self) -> object:
+		"""The media pool `ComboBox`"""
+
+		return self._cmb_media_pool_path
 
 	def subfolder_list_view(self) -> object:
 		"""The subfolder `Tree` view"""

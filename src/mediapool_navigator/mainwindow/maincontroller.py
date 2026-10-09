@@ -17,7 +17,7 @@ class MPNMainController:
 
 		self.set_info_label(version_string=__VERSION__, github_url=URL_GITHUB)
 
-		self._media_pool_input_controller = mediapoolinput.MPILineEditController(self._main_widget.media_pool_path_input())
+		self._media_pool_input_controller = mediapoolinput.MPILineEditController(self._main_widget.media_pool_path_editor())
 		self._folder_list_controller      = folderlistcontroller.MPNFolderListController(self._main_widget.subfolder_list_view())
 
 		self._media_pool_input_controller.register_callback(callbacks.MPICallbacks.SUBFOLDERS_CHANGED, self._folder_list_controller.set_folder_list)
@@ -31,7 +31,7 @@ class MPNMainController:
 
 #		window_handle.On[mainwidget.ID_BTN_GO].Clicked          = self._on_go_button_clicked
 		window_handle.On[self._main_widget.button_use_current().ID].Clicked           = self._on_set_current_button_clicked
-		window_handle.On[self._main_widget.media_pool_path_input().ID].ReturnPressed  = self._on_go_button_clicked
+		window_handle.On[self._main_widget.media_pool_path_editor().ID].ReturnPressed = self._on_go_button_clicked
 
 		window_handle.On[self._main_widget.subfolder_list_view().ID].ItemActivated    = self._on_folder_chosen
 		window_handle.On[self._main_widget.subfolder_list_view().ID].ItemClicked      = self._on_folder_clicked
@@ -99,4 +99,4 @@ class MPNMainController:
 
 	def set_info_label(self, /, version_string:str, github_url:str):
 
-		self._main_widget.info_label().Text = f"{version_string} | <a href=\"{github_url}\">Github"
+		self._main_widget.info_label().Text = f"v{version_string} | <a href=\"{github_url}\">Github"
