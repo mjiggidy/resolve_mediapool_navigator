@@ -1,6 +1,14 @@
-__VERSION__ = "0.2"
+import logging
+
+__VERSION__ = "0.3-dev"
 URL_GITHUB  = "https://github.com/mjiggidy/resolve_mediapool_navigator/"
 
-from resolvecommon.session import resolve, fusion, bmd
+if not "bmd" in globals():
+
+	logging.getLogger(__name__).debug("Importing `DaVinciResolveScript`")
+	import DaVinciResolveScript as bmd
+
+resolve    = bmd.scriptapp("resolve")
+fusion     = bmd.scriptapp("fusion")
 ui         = fusion.UIManager
 dispatcher = bmd.UIDispatcher(ui)
