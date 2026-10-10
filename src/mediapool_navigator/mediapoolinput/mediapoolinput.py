@@ -31,6 +31,19 @@ class MPIFolderInfo:
 
 		return True
 
+	def set_folder_path(self, folder_path:str) -> bool:
+		"""Set the current folder from a given path string.  Returns `True` if the folder changed since last."""
+
+		if self._folder_path == folder_path:
+			return False
+		
+		root_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
+		
+		self._folder_handle = folders.get_folder_from_path(folder_path, root_folder)
+		self._folder_path   = self._folder_path
+
+		return True
+
 	def clear_folder(self) -> bool:
 		"""Clear the current folder.  Returns `True` if this is a change."""
 
@@ -97,6 +110,7 @@ class MPILineEditController:
 
 		folder_path = self._folder_tracker.folder_path()
 		formatted_path = "" if folder_path == "/Master" else folder_path[len("/Master/"):]
+
 		self.set_path_from_text("", formatted_path)
 
 	def set_path_from_text(self, base_text:str, autocomplete_text:str=""):
@@ -107,7 +121,7 @@ class MPILineEditController:
 
 		self._last_edit_length = len(base_text)
 
-		_logger.debug("Edit length set to ", self._last_edit_length)
+		_logger.debug("Edit length set to %s", self._last_edit_length)
 
 	def register_callback(self, callback:MPICallbacks, callback_function:typing.Callable):
 
@@ -150,11 +164,8 @@ class MPILineEditController:
 
 		try:
 
-			root_folder = resolve.GetProjectManager().GetCurrentProject().GetMediaPool().GetRootFolder()
-			base_folder = folders.get_folder_from_path(base_path, root_folder)
-
-			if self._folder_tracker.set_folder(base_folder):
-				self._send_callback(MPICallbacks.CURRENT_FOLDER_CHANGED, base_folder)
+			if self._folder_tracker.set_folder_path(base_path):
+				self._send_callback(MPICallbacks.CURRENT_FOLDER_CHANGED, self._folder_tracker.folder())
 
 			filtered_subfolders = list(
 				filter(lambda f: f.GetName().startswith(partial_folder_name), self._folder_tracker.subfolders())
