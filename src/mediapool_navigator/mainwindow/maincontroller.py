@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from .. import dispatcher, ui, __VERSION__, URL_GITHUB
 from . import mainwidget
+
+from .. import __VERSION__, URL_GITHUB
 from ..folderlist import folderlistcontroller
 from ..mediapoolinput import mediapoolinput, callbacks
+
 from resolvecommon.session import resolve
 
 from ..utils import folders
